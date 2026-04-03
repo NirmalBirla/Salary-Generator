@@ -4,7 +4,7 @@ import os
 import pytz
 import re
 
-from slack_api import fetch_all_users, retrieve_messages
+from slack_api import fetch_all_users, retrieve_messages_with_threads
 
 def convert_to_kolkata_time(timestamp_in_seconds):
     # Convert the timestamp into a UTC datetime object
@@ -48,7 +48,7 @@ def save_to_csv(filtered_messages, filename, users_list):
     try:
         with open(filename, "w", newline="", encoding="utf-8") as file:
             writer = csv.writer(file)
-            writer.writerow(["UserId", "Full Name", "Date", "Time", "Message"])
+            writer.writerow(["UserId", "Full Name", "Date", "Time", "Message", "Replies"])
 
             for message in filtered_messages:
                 user_id = message.get("user")
@@ -60,19 +60,30 @@ def save_to_csv(filtered_messages, filename, users_list):
 
                 # Clean the message text and replace user mentions
                 new_message = message.get("text", "").strip()
+                replies = message.get("replies", [])
+
+                all_replies = "; ".join([f"<@{reply.get('user', 'Unknown')}>: {reply.get('text', '')}" for reply in replies])
                 
                 for uid, user_data in users_list.items():
                     mention = f"<@{uid}>"
                     if mention in new_message:
                         new_message = new_message.replace(mention, f"@{user_data['real_name']}")
+
+                    if mention in all_replies:
+                        if mention+":" in all_replies:
+                            all_replies = all_replies.replace(mention+":", f"{user_data['real_name']} :")
+                        all_replies = all_replies.replace(mention, f"@{user_data['real_name']}")
                 
                 # Remove commas from the message to avoid CSV issues
                 new_message = new_message.replace(",", "")
+                all_replies = all_replies.replace(",", "")
 
                 # Remove any leading/trailing spaces and multiple spaces between words
                 new_message = re.sub(r'\s+', ' ', new_message).strip()
+                all_replies = re.sub(r'\s+', ' ', all_replies).strip()
+
                 # Write the row to the CSV file
-                writer.writerow([user_id, full_name, date, time, new_message])
+                writer.writerow([user_id, full_name, date, time, new_message, all_replies])
         file_name = filename.split('\\')[-1]
         print(f"\nSlack Messages File generated as {file_name}")
     
@@ -90,7 +101,7 @@ def slack_api_run(file_name, start_date, end_date):
             return
 
         # Retrieve Slack messages
-        all_slack_messages = retrieve_messages()
+        all_slack_messages = retrieve_messages_with_threads()
         if not all_slack_messages:
             print("Error: No Slack messages retrieved.")
             return
@@ -114,7 +125,7 @@ def slack_api_run(file_name, start_date, end_date):
     except Exception as e:
         print(f"An error occurred during the Slack API run: {e}")
 
-# file_name = 'OCTOBER_2025'
-# start_date = '2025-10-01'
-# end_date = '2025-10-31'
+# file_name = 'APRIL_2026'
+# start_date = '2026-04-01'
+# end_date = '2026-04-30'
 # slack_api_run(file_name, start_date, end_date)

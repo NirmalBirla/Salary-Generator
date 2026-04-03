@@ -56,7 +56,7 @@ def generate_csv(file_name, sorted_data_list):
     # Generating a CSV file
     csv_file_path = f'{file_name}_DAILY_REPORT.csv'
     with open(csv_file_path, 'w', newline='') as csv_file:
-        fieldnames = ['Employee_ID', 'Date', 'Status', 'Duration', 'Name', 'Total_Punch', 'Punch_type', 'Punch_issues']
+        fieldnames = ['Employee_ID', 'Date', 'Status', 'Duration', 'Name', 'Total_Punch', 'Punch_type', 'Punch_issues', 'Replies'] # Added Replies to headers
         writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
         writer.writeheader()
         for entry in sorted_data_list:

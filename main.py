@@ -11,7 +11,7 @@ downloads_directory = "C:\\Users\\bridg\\Downloads\\"
 
 # It should be updated annually to reflect any changes or new holidays for the current year.
 # Make sure to review and modify this list at the start of each year to ensure accurate attendance management.
-holidays = ['2026-01-26','2025-03-19','2025-08-15','2025-10-02','2025-10-20','2025-10-22','2025-10-23','2025-12-25'] # add holidays in this format "YYYY-MM-DD" (Example "2025-01-01")
+holidays = ['2026-01-26','2026-03-04','2026-08-15','2026-10-02','2026-10-20','2026-10-22','2026-10-23','2026-12-25'] # add holidays in this format "YYYY-MM-DD" (Example "2026-01-01")
 
 
 def generate_monthly_records(file_name):
@@ -249,7 +249,7 @@ def main_function():
                         'name': employee_names[emp_id],
                         'duration': '00:00',
                         'total punch': [],
-                        'punch': 'none',
+                        'punch': '-',
                         'Status': status
                     }
                 else:
@@ -317,14 +317,14 @@ def main_function():
         data_list = []
         for emp_id, dates in final.items():
             for date, data in dates.items():
-                # issue = []
                 issue = ""
+                replies = ""
                 slack_messages = slack_open_file(slack_path)
                 for row in slack_messages:
                     row=row.split(',')
                     if row[2] == str(date) and row[1].title() == data["name"].title():
-                        # issue.append(f"Time: {row[3]} Message: {row[4]}")
                         issue += f"Time: {row[3]} Message: {row[4]} "
+                        replies += f"{row[5]} "
                 entry = {
                     'Employee_ID': emp_id,
                     'Name': data['name'],
@@ -333,7 +333,8 @@ def main_function():
                     'Duration': data['duration'],
                     "Total_Punch": data['total punch'],
                     'Punch_type': data['punch'],
-                    "Punch_issues": issue
+                    "Punch_issues": issue,
+                    "Replies": replies
                 }
 
                 data_list.append(entry)
